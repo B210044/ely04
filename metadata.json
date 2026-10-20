@@ -1,0 +1,8 @@
+{
+  "name": "Remix BobaFlow Ely",
+  "description": "Streamline your custom bubble tea orders with this easy-to-use beverage management and ordering platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

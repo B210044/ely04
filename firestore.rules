@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connection verification endpoint
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isStaff() {
+      return isSignedIn() && request.auth.token.email == 'b11206143@gapps.knu.edu.tw';
+    }
+
+    function isValidMember(data) {
+      return data.keys().hasAll(['id', 'uid', 'email', 'displayName', 'phone', 'tier', 'points', 'totalSpentTwd']) &&
+        data.id is string && data.id.size() <= 128 &&
+        data.uid is string && data.uid.size() <= 128 &&
+        data.email is string && data.email.size() <= 256 &&
+        data.displayName is string && data.displayName.size() <= 100 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.tier in ['bronze', 'silver', 'gold', 'platinum'] &&
+        data.points is number && data.points >= 0 &&
+        data.totalSpentTwd is number && data.totalSpentTwd >= 0;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['orderId', 'orderNumber', 'timestamp', 'orderType', 'itemsCount', 'subtotal', 'totalTwd', 'paymentMethod', 'invoiceNumber']) &&
+        data.orderId is string && data.orderId.size() <= 64 &&
+        data.orderNumber is string && data.orderNumber.size() <= 32 &&
+        data.timestamp is number &&
+        data.orderType in ['takeout', 'dinein', 'delivery'] &&
+        data.itemsCount is number &&
+        data.subtotal is number &&
+        data.totalTwd is number &&
+        data.paymentMethod in ['cash', 'linepay', 'jko', 'credit', 'applepay'] &&
+        data.invoiceNumber is string && data.invoiceNumber.size() <= 32;
+    }
+
+    function isValidPointTx(data) {
+      return data.keys().hasAll(['id', 'memberId', 'type', 'points', 'balanceAfter', 'description', 'timestamp']) &&
+        data.id is string && data.id.size() <= 64 &&
+        data.memberId is string && data.memberId.size() <= 128 &&
+        data.type in ['earn', 'redeem', 'bonus', 'adjustment'] &&
+        data.points is number &&
+        data.balanceAfter is number &&
+        data.description is string && data.description.size() <= 200 &&
+        data.timestamp is number;
+    }
+
+    // Members collection
+    match /members/{memberId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(memberId) && isValidMember(incoming());
+      allow update: if isSignedIn() && isValidId(memberId) && isValidMember(incoming());
+      allow delete: if false;
+
+      // Member purchase history subcollection
+      match /orders/{orderId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isValidId(orderId) && isValidOrder(incoming());
+        allow update, delete: if false;
+      }
+
+      // Member loyalty point transactions subcollection
+      match /pointTransactions/{txId} {
+        allow get, list: if isSignedIn();
+        allow create: if isSignedIn() && isValidId(txId) && isValidPointTx(incoming());
+        allow update, delete: if false;
+      }
+    }
+
+    // General store orders
+    match /orders/{orderId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(orderId) && isValidOrder(incoming());
+      allow update, delete: if false;
+    }
+  }
+}

@@ -1,0 +1,247 @@
+{
+  "entities": {
+    "Member": {
+      "title": "Member",
+      "description": "Registered member profile with loyalty points balance and tier",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique member identifier (matching auth UID)",
+          "maxLength": 128
+        },
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth user ID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Member email address",
+          "format": "email",
+          "maxLength": 256
+        },
+        "emailVerified": {
+          "type": "boolean",
+          "description": "Whether member email has been verified"
+        },
+        "verifiedByAdmin": {
+          "type": "boolean",
+          "description": "Whether member verification was manually confirmed by manager"
+        },
+        "verifiedAt": {
+          "type": "number",
+          "description": "Timestamp when manager verified the member"
+        },
+        "verifiedBy": {
+          "type": "string",
+          "description": "Manager or staff operator name who verified the member",
+          "maxLength": 100
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Member full name or nickname",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "description": "Member mobile phone number for lookup",
+          "maxLength": 20
+        },
+        "birthday": {
+          "type": "string",
+          "description": "Member birthday for birthday promotions",
+          "maxLength": 20
+        },
+        "tier": {
+          "type": "string",
+          "description": "Loyalty membership tier",
+          "enum": ["bronze", "silver", "gold", "platinum"]
+        },
+        "points": {
+          "type": "number",
+          "description": "Current active redeemable points"
+        },
+        "lifetimePoints": {
+          "type": "number",
+          "description": "Total lifetime points accumulated"
+        },
+        "totalSpentTwd": {
+          "type": "number",
+          "description": "Cumulative spending amount in TWD"
+        },
+        "orderCount": {
+          "type": "number",
+          "description": "Total number of completed orders"
+        },
+        "favoriteDrink": {
+          "type": "string",
+          "description": "Member favorite tea beverage",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "number",
+          "description": "Account registration timestamp in milliseconds"
+        },
+        "updatedAt": {
+          "type": "number",
+          "description": "Last profile or points update timestamp in milliseconds"
+        }
+      },
+      "required": ["id", "uid", "email", "displayName", "phone", "tier", "points", "totalSpentTwd"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "POS or member purchase order record",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "Unique order identifier",
+          "maxLength": 64
+        },
+        "orderNumber": {
+          "type": "string",
+          "description": "Display order queue number e.g. #A25",
+          "maxLength": 32
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Order creation timestamp"
+        },
+        "orderType": {
+          "type": "string",
+          "description": "Order fulfillment mode",
+          "enum": ["takeout", "dinein", "delivery"]
+        },
+        "itemsCount": {
+          "type": "number",
+          "description": "Total count of beverage cups"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Order subtotal before discounts"
+        },
+        "discount": {
+          "type": "number",
+          "description": "Eco cup or promo discount"
+        },
+        "totalTwd": {
+          "type": "number",
+          "description": "Final paid amount in TWD"
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method used",
+          "enum": ["cash", "linepay", "jko", "credit", "applepay"]
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "description": "Taiwan electronic invoice number",
+          "maxLength": 32
+        },
+        "randomCode": {
+          "type": "string",
+          "description": "Invoice 4-digit verification code",
+          "maxLength": 8
+        },
+        "memberId": {
+          "type": "string",
+          "description": "Associated member UID or ID",
+          "maxLength": 128
+        },
+        "memberName": {
+          "type": "string",
+          "description": "Associated member name",
+          "maxLength": 100
+        },
+        "memberPhone": {
+          "type": "string",
+          "description": "Associated member phone number",
+          "maxLength": 20
+        },
+        "memberEmail": {
+          "type": "string",
+          "description": "Associated member email",
+          "maxLength": 256
+        },
+        "pointsEarned": {
+          "type": "number",
+          "description": "Points earned from this purchase"
+        },
+        "pointsRedeemed": {
+          "type": "number",
+          "description": "Points redeemed for discount in this order"
+        },
+        "pointsDiscount": {
+          "type": "number",
+          "description": "Discount amount derived from points in TWD"
+        }
+      },
+      "required": ["orderId", "orderNumber", "timestamp", "orderType", "itemsCount", "subtotal", "totalTwd", "paymentMethod", "invoiceNumber"]
+    },
+    "PointTransaction": {
+      "title": "PointTransaction",
+      "description": "Log entry of points earned or redeemed",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Transaction ID",
+          "maxLength": 64
+        },
+        "memberId": {
+          "type": "string",
+          "description": "Member ID receiving or using points",
+          "maxLength": 128
+        },
+        "type": {
+          "type": "string",
+          "description": "Transaction category",
+          "enum": ["earn", "redeem", "bonus", "adjustment"]
+        },
+        "points": {
+          "type": "number",
+          "description": "Delta point amount"
+        },
+        "balanceAfter": {
+          "type": "number",
+          "description": "Point balance after transaction"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human readable detail of the points event",
+          "maxLength": 200
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Optional associated order ID",
+          "maxLength": 64
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Timestamp in milliseconds"
+        }
+      },
+      "required": ["id", "memberId", "type", "points", "balanceAfter", "description", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Member account profile including points balance and tier"
+    },
+    "/members/{memberId}/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Member specific purchase order history"
+    },
+    "/members/{memberId}/pointTransactions/{txId}": {
+      "schema": "PointTransaction",
+      "description": "Member loyalty points transaction logs"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Store-wide sales orders linked with POS cashier terminal"
+    }
+  }
+}
